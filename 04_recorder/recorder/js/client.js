@@ -13,34 +13,34 @@ var buffer;
 var mediaRecorder;
 
 
-function gotMediaStream(stream){
+function gotMediaStream(stream) {
 
 	window.stream = stream;
 	videoplay.srcObject = stream;
 
 }
 
-function handleError(err){
+function handleError(err) {
 	console.log('getUserMedia error:', err);
 }
 
 function start() {
 
-	if(!navigator.mediaDevices ||
-		!navigator.mediaDevices.getUserMedia){
+	if (!navigator.mediaDevices ||
+		!navigator.mediaDevices.getUserMedia) {
 
 		console.log('getUserMedia is not supported!');
 		return;
 
-	}else{
+	} else {
 
 		var constraints = {
-			video : {
-				width: 640,	
+			video: {
+				width: 640,
 				height: 480,
-				frameRate:15
-			}, 
-			audio : false 
+				frameRate: 15
+			},
+			audio: false
 		}
 
 		navigator.mediaDevices.getUserMedia(constraints)
@@ -51,50 +51,56 @@ function start() {
 
 start();
 
-function handleDataAvailable(e){
-	if(e && e.data && e.data.size > 0){
-	 	buffer.push(e.data);			
+//当该函数被触发后，将数据压入到blob中
+function handleDataAvailable(e) {
+	if (e && e.data && e.data.size > 0) {
+		buffer.push(e.data);
 	}
 }
 
-function startRecord(){
-	
+function startRecord() {
+
 	buffer = [];
 
+	//设置录制下来的多媒体格式
 	var options = {
 		mimeType: 'video/webm;codecs=vp8'
 	}
 
-	if(!MediaRecorder.isTypeSupported(options.mimeType)){
+	//判断浏览器是否支持录制
+	if (!MediaRecorder.isTypeSupported(options.mimeType)) {
 		console.error(`${options.mimeType} is not supported!`);
-		return;	
+		return;
 	}
 
-	try{
+	try {
+		//创建录制对象
 		mediaRecorder = new MediaRecorder(window.stream, options);
-	}catch(e){
+	} catch (e) {
 		console.error('Failed to create MediaRecorder:', e);
-		return;	
+		return;
 	}
 
+	//当有音视频数据来了之后触发该事件
 	mediaRecorder.ondataavailable = handleDataAvailable;
+	//开始录制
 	mediaRecorder.start(10);
 
 }
 
-function stopRecord(){
+function stopRecord() {
 	mediaRecorder.stop();
 }
 
-btnRecord.onclick = ()=>{
+btnRecord.onclick = () => {
 
-	if(btnRecord.textContent === 'Start Record'){
-		startRecord();	
+	if (btnRecord.textContent === 'Start Record') {
+		startRecord();
 		btnRecord.textContent = 'Stop Record';
 		btnPlay.disabled = true;
 		btnDownload.disabled = true;
-	}else{
-	
+	} else {
+
 		stopRecord();
 		btnRecord.textContent = 'Start Record';
 		btnPlay.disabled = false;
@@ -103,16 +109,16 @@ btnRecord.onclick = ()=>{
 	}
 }
 
-btnPlay.onclick = ()=> {
-	var blob = new Blob(buffer, {type: 'video/webm'});
+btnPlay.onclick = () => {
+	var blob = new Blob(buffer, { type: 'video/webm' });
 	recvideo.src = window.URL.createObjectURL(blob);
 	recvideo.srcObject = null;
 	recvideo.controls = true;
 	recvideo.play();
 }
 
-btnDownload.onclick = ()=> {
-	var blob = new Blob(buffer, {type: 'video/webm'});
+btnDownload.onclick = () => {
+	var blob = new Blob(buffer, { type: 'video/webm' });
 	var url = window.URL.createObjectURL(blob);
 	var a = document.createElement('a');
 
